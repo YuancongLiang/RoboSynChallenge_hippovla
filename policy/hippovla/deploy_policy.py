@@ -516,6 +516,7 @@ class ModelClient:
         water_pouring_success_cup_upright_max_deg: float = 25.0,
         camera_overrides: Optional[Dict[str, Any]] = None,
         action_debug_interval: int = 0,
+        replan_action_steps: Optional[int] = None,
     ) -> None:
         if image_size is None:
             image_size = [224, 224]
@@ -563,6 +564,7 @@ class ModelClient:
             self.action_ensembler = None
         self.num_image_history = 0
         self.raw_actions = None
+        self.action_chunk_index = 0
         self.env_step = 0
 
         self.action_chunk_size = int(
@@ -571,6 +573,14 @@ class ModelClient:
         )
         self.eval_action_steps = _parse_optional_int(eval_action_steps) or self.action_chunk_size
         self.eval_action_steps = max(1, int(self.eval_action_steps))
+        requested_replan_steps = _parse_optional_int(replan_action_steps)
+        self.replan_action_steps = (
+            self.action_chunk_size if requested_replan_steps is None else requested_replan_steps
+        )
+        if not 1 <= self.replan_action_steps <= self.action_chunk_size:
+            raise ValueError(
+                f"replan_action_steps must be between 1 and action_chunk_size={self.action_chunk_size}"
+            )
 
         self.history_k = max(0, int(history_k))
         self.history_stride = max(1, int(history_stride))
@@ -632,6 +642,7 @@ class ModelClient:
             f"host={host}, port={port}, unnorm_key={self.unnorm_key}, "
             f"action_mode={self.action_mode}, normalization={self.normalization_mode}, "
             f"chunk={self.action_chunk_size}, eval_steps={self.eval_action_steps}, "
+            f"replan_steps={self.replan_action_steps}, "
             f"model_action_order={self.model_action_order}, send_state={self.send_state}, "
             f"server_meta={server_meta} ***"
         )
@@ -741,6 +752,7 @@ class ModelClient:
             self.action_ensembler.reset()
         self.num_image_history = 0
         self.raw_actions = None
+        self.action_chunk_index = 0
         self.initial_state = None
         self.prev_action = None
         self.env_step = 0
@@ -877,7 +889,11 @@ class ModelClient:
             "unnorm_key": self.unnorm_key,
         }
 
-        if step % self.action_chunk_size == 0 or self.raw_actions is None:
+        # Execute only the configured prefix, then replan from the latest observation.
+        # A local cursor also handles episode resets and shorter server responses.
+        if self.raw_actions is None or self.action_chunk_index >= min(
+            self.replan_action_steps, len(self.raw_actions)
+        ):
             response = self.client.predict_action(vla_input)
             if response.get("ok") is False:
                 raise RuntimeError(f"Policy server returned an error: {response.get('error', response)}")
@@ -891,17 +907,21 @@ class ModelClient:
             else:
                 raise KeyError(f"Response data has no actions field: {data.keys()}")
 
+            if raw_actions.ndim != 2 or len(raw_actions) == 0:
+                raise ValueError("Policy server must return a non-empty (steps, action_dim) chunk")
+
             if self.action_mode == "delta":
                 self.raw_actions = self._delta_to_absolute(raw_actions, state_in_model_order)
             elif self.action_mode == "rel":
                 self.raw_actions = self._rel_to_absolute(raw_actions)
             else:
                 self.raw_actions = raw_actions
+            self.action_chunk_index = 0
 
         self._push_history_frame(images[0])
 
-        action_idx = min(step % self.action_chunk_size, len(self.raw_actions) - 1)
-        current_action = np.asarray(self.raw_actions[action_idx], dtype=np.float32)
+        current_action = np.asarray(self.raw_actions[self.action_chunk_index], dtype=np.float32)
+        self.action_chunk_index += 1
         if self.action_mode == "delta":
             self.prev_action = current_action.copy()
 
@@ -1408,6 +1428,7 @@ def get_model(usr_args: dict) -> ModelClient:
         binary_action_indices=usr_args.get("binary_action_indices", DEFAULT_BINARY_ACTION_INDICES),
         binary_threshold=float(usr_args.get("binary_threshold", 0.5)),
         eval_action_steps=_parse_optional_int(usr_args.get("eval_action_steps", None)),
+        replan_action_steps=_parse_optional_int(usr_args.get("replan_action_steps", None)),
         image_size=usr_args.get("image_size", [224, 224]),
         use_ddim=_parse_bool(usr_args.get("use_ddim", True), default=True),
         num_ddim_steps=int(usr_args.get("num_ddim_steps", 10)),

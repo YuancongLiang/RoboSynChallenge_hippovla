@@ -89,6 +89,8 @@ Server and simulation can use separate GPUs or hosts. For a remote server, set `
 
 Keep the server running. From the repository root, using the simulation interpreter:
 
+The adapter predicts 16 actions and executes the first 8 before requesting a new prediction from the latest observation. In the installed `policy/hippovla/deploy_policy.yml`, `replan_action_steps: 8` controls this interval; `eval_action_steps: 8` controls the number of environment steps per outer `eval()` call. Set `replan_action_steps: 16` to execute full chunks. Omitting this option also preserves full-chunk execution. This changes inference scheduling without changing the checkpoint's prediction horizon.
+
 ```bash
 "$ROBOSYN_PYTHON" scripts/eval.py all --gpu 1 --episodes 50 \
   --output eval_runs/hippovla_all_001
