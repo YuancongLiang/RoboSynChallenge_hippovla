@@ -1,0 +1,103 @@
+{
+  "repository": "Alibaba-DAMO-Academy/RynnBrain-8B",
+  "revision": "04f588d50bf6f31b6b9f03f4d16d98dd0d22bcfe",
+  "files": {
+    "added_tokens.json": {
+      "size_bytes": 707,
+      "hash_algorithm": "git_blob_sha1",
+      "hash": "b54f9135e44c1e81047e8d05cb027af8bc039eed",
+      "matches_upstream": true
+    },
+    "chat_template.jinja": {
+      "size_bytes": 5292,
+      "hash_algorithm": "git_blob_sha1",
+      "hash": "124386803f142761528f710e77ae483f5f8c4fc4",
+      "matches_upstream": true
+    },
+    "config.json": {
+      "size_bytes": 1569,
+      "hash_algorithm": "git_blob_sha1",
+      "hash": "866afffb3a9bede02205d405af7b21b25f7486df",
+      "matches_upstream": true
+    },
+    "generation_config.json": {
+      "size_bytes": 199,
+      "hash_algorithm": "git_blob_sha1",
+      "hash": "e0ee85ca7ec5198f231fcbe2f32f6c4a40df9083",
+      "matches_upstream": true
+    },
+    "merges.txt": {
+      "size_bytes": 1671853,
+      "hash_algorithm": "git_blob_sha1",
+      "hash": "31349551d90c7606f325fe0f11bbb8bd5fa0d7c7",
+      "matches_upstream": true
+    },
+    "model-00001-of-00004.safetensors": {
+      "size_bytes": 4998056552,
+      "hash_algorithm": "sha256",
+      "hash": "140ff7f678a218863068a138c7d85672bc712b3df4fd281ff5e168a59b44e586",
+      "matches_upstream": true
+    },
+    "model-00002-of-00004.safetensors": {
+      "size_bytes": 4915962464,
+      "hash_algorithm": "sha256",
+      "hash": "40fd775ab910b9227c1b181c9cc51b27413985b88b9ff4851bb41b1152e20c78",
+      "matches_upstream": true
+    },
+    "model-00003-of-00004.safetensors": {
+      "size_bytes": 4915962496,
+      "hash_algorithm": "sha256",
+      "hash": "4d4078affd54e16adefe1c796df1dc68a1aafd0e2377b11e6a6de1a45a136f99",
+      "matches_upstream": true
+    },
+    "model-00004-of-00004.safetensors": {
+      "size_bytes": 2704357976,
+      "hash_algorithm": "sha256",
+      "hash": "0ceddf5b3e30592afc0293a57f81a975abca8d1b9c2e0da3869faef630b98911",
+      "matches_upstream": true
+    },
+    "model.safetensors.index.json": {
+      "size_bytes": 67795,
+      "hash_algorithm": "git_blob_sha1",
+      "hash": "6d4d74c934b05b8addb0744305eef3674650cd8b",
+      "matches_upstream": true
+    },
+    "preprocessor_config.json": {
+      "size_bytes": 782,
+      "hash_algorithm": "git_blob_sha1",
+      "hash": "2fa6553554f69b4e3a6b742a75264ff9dff90ad0",
+      "matches_upstream": true
+    },
+    "special_tokens_map.json": {
+      "size_bytes": 613,
+      "hash_algorithm": "git_blob_sha1",
+      "hash": "ac23c0aaa2434523c494330aeb79c58395378103",
+      "matches_upstream": true
+    },
+    "tokenizer.json": {
+      "size_bytes": 11422654,
+      "hash_algorithm": "sha256",
+      "hash": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+      "matches_upstream": true
+    },
+    "tokenizer_config.json": {
+      "size_bytes": 5445,
+      "hash_algorithm": "git_blob_sha1",
+      "hash": "fec7f182135c384a08ea2fc9635566ca79c45afc",
+      "matches_upstream": true
+    },
+    "video_preprocessor_config.json": {
+      "size_bytes": 817,
+      "hash_algorithm": "git_blob_sha1",
+      "hash": "e32b1d90356f74457edbfca27aa1e121dab7cdc7",
+      "matches_upstream": true
+    },
+    "vocab.json": {
+      "size_bytes": 2776833,
+      "hash_algorithm": "git_blob_sha1",
+      "hash": "4783fe10ac3adce15ac8f358ef5462739852c569",
+      "matches_upstream": true
+    }
+  },
+  "verified_date": "2026-10-16"
+}

@@ -38,7 +38,7 @@ def main():
         print("Hard link unavailable; copying the checkpoint.")
         shutil.copy2(source, target)
     print(f"Staged: {output}")
-    print(f'hf upload YOUR_ACCOUNT/YOUR_MODEL "{output}" . --repo-type model')
+    print(f'hf upload ovoovo/hippovla "{output}" . --repo-type model')
 
 
 if __name__ == "__main__":

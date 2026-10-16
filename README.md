@@ -8,19 +8,19 @@ The GitHub repository contains code, matching training configuration, and normal
 
 ## 1. Download models
 
-After uploading the checkpoint to your Hugging Face model repository, pin its immutable revision:
+Download the policy and base model at these immutable revisions:
 
 ```bash
-export POLICY_REPO=YOUR_ACCOUNT/YOUR_MODEL
-export POLICY_REVISION=YOUR_IMMUTABLE_HF_REVISION
+export POLICY_REPO=ovoovo/hippovla
+export POLICY_REVISION=352a6cf7b419734fd0b13ce75a4205c2073c03ee
 hf download "$POLICY_REPO" --revision "$POLICY_REVISION" --local-dir models/hippovla
 
-export BASE_REVISION=YOUR_VERIFIED_RYNNBRAIN_REVISION
+export BASE_REVISION=04f588d50bf6f31b6b9f03f4d16d98dd0d22bcfe
 hf download Alibaba-DAMO-Academy/RynnBrain-8B --revision "$BASE_REVISION" \
   --local-dir models/RynnBrain8B
 ```
 
-`hf` is supplied by `huggingface_hub`. The base snapshot used on the source server has no recorded upstream revision; select and record the matching snapshot rather than assuming the latest one is identical. The selected policy's exact identity is in [checkpoint_identity.json](docs/checkpoint_identity.json).
+`hf` is supplied by `huggingface_hub`. The local base model was verified against this RynnBrain-8B revision: all four weight shards match upstream SHA-256 hashes, and all configuration/tokenizer/processor files match upstream content hashes. See [base model verification](docs/base_model_verification.json). The selected policy's exact identity is in [checkpoint_identity.json](docs/checkpoint_identity.json).
 
 ```text
 models/
@@ -69,7 +69,7 @@ Wait for the WebSocket listening message and check for loading errors. Model ini
 
 ## 4. Install official evaluation environment and adapter
 
-Install [RoboSynChallenge](https://github.com/EDEM-AI/RoboSynChallenge) and EmbodiChain using the [official installation guide](https://edem-ai.github.io/RoboSynChallenge/html/getting_started/installation.html). Use their dedicated environment for simulation. Our source checkout references are recorded in [provenance.json](docs/provenance.json); these do not claim unmodified upstream checkouts.
+Install [RoboSynChallenge](https://github.com/EDEM-AI/RoboSynChallenge) and EmbodiChain using the [official installation guide](https://edem-ai.github.io/RoboSynChallenge/html/getting_started/installation.html). Use their dedicated environment for simulation. This adapter targets the four-return evaluator checked at official commit `64b0775eddb3ed8c4c3d1212f322e8a9d036e9d6`; use that commit or a compatible newer evaluator. Older local three-return evaluators are incompatible. Our source checkout references are recorded in [provenance.json](docs/provenance.json); these do not claim unmodified upstream checkouts.
 
 ```bash
 export ROBOSYNCHALLENGE_PATH=/absolute/path/to/RoboSynChallenge
@@ -83,13 +83,22 @@ ffmpeg -version
 
 `ffmpeg` must support `libx264`. The installer adds `policy/hippovla/` and refuses to overwrite an existing directory. It exports `get_model`, `eval`, `reset_model`, `encode_obs`, and `encode_action` as required by the [official policy interface](https://edem-ai.github.io/RoboSynChallenge/html/tutorials/policy/your_own_policy.html).
 
+The installed shell entrypoint also runs an individual task directly:
+
+```bash
+bash "$ROBOSYNCHALLENGE_PATH/policy/hippovla/eval.sh" \
+  click_bell "$PWD/models/hippovla/final_model/pytorch_model.pt" 1 50
+```
+
+Arguments are `TASK CHECKPOINT [GPU=0] [EPISODES=50] [--KEY VALUE ...]`. Run from any directory; relative checkpoint paths resolve from your current directory. This entrypoint uses official task limits and recordings configured in `deploy_policy.yml`. Use `scripts/eval.py` for the per-task output folders and three-camera videos described below.
+
 Server and simulation can use separate GPUs or hosts. For a remote server, set `ROBOSYN_POLICY_HOST` to its address. Both machines need the matching metadata/checkpoint directory layout; the client reads configuration and statistics locally. Do not export the server's CUDA mask into the evaluation environment; the launcher removes it and selects the simulator GPU with `--gpu_id`.
 
 ## 5. Run all ten tasks
 
 Keep the server running. From the repository root, using the simulation interpreter:
 
-The adapter predicts 16 actions and executes the first 8 before requesting a new prediction from the latest observation. In the installed `policy/hippovla/deploy_policy.yml`, `replan_action_steps: 8` controls this interval; `eval_action_steps: 8` controls the number of environment steps per outer `eval()` call. Set `replan_action_steps: 16` to execute full chunks. Omitting this option also preserves full-chunk execution. This changes inference scheduling without changing the checkpoint's prediction horizon.
+The adapter predicts 16 actions and executes the first 4 before requesting a new prediction from the latest observation. In the installed `policy/hippovla/deploy_policy.yml`, `replan_action_steps: 4` controls this interval; `eval_action_steps: 4` controls the number of environment steps per outer `eval()` call. Set `replan_action_steps: 16` to execute full chunks. Omitting this option also preserves full-chunk execution. This changes inference scheduling without changing the checkpoint's prediction horizon.
 
 ```bash
 "$ROBOSYN_PYTHON" scripts/eval.py all --gpu 1 --episodes 50 \
@@ -115,9 +124,11 @@ Use `--checkpoint`, `--host`, `--port`, `--seed`, and `--robosyn-root` to overri
 
 Each task gets `eval.log`, `command.json`, `gym_config_source.json` (the source task config, not a full runtime state), and `videos/`. The adapter saves all three camera frame sequences and encodes a 25 FPS MP4 for each at episode end. Failed recordings surface as exceptions. The launcher `summary.json` records process exit codes only; read the official logs for completed episodes, exceptions, and success counts before reporting results. A zero exit code alone does not establish 50 completed episodes.
 
+The adapter returns `(observation, info, truncated, inference_times_s)` for the official evaluator. Each timing sample covers raw RGB/state preprocessing, memory preparation, the synchronous WebSocket request (including remote inference), delta decoding, and executable-action conversion/transfer. Cached actions, simulation steps, video encoding and success checks do not add inference samples. Timing includes network overhead when the server is remote. The adapter uses only the official `is_task_success` interface for stopping and does not modify cameras or success rules.
+
 ## Action and memory semantics
 
-The policy returns normalized actions. The adapter performs: continuous min-max denormalization over **all 14 dimensions**, then `absolute[t] = measured_state + cumsum(delta)[t]` using a fresh measured state for every new chunk. It preserves `[left_arm(6), left_gripper, right_arm(6), right_gripper]`, executes 16 steps per chunk, and does not binarize grippers. Gripper ratios are clipped to [0,1] then mapped to the robot's actual joint limits; `table_rearrangement` uses physical units directly. The policy network receives three RGB views resized to 224×224; measured state is used for local delta reconstruction and is not sent to the model.
+The policy returns normalized actions. The adapter performs: continuous min-max denormalization over **all 14 dimensions**, then `absolute[t] = measured_state + cumsum(delta)[t]` using a fresh measured state for every new chunk. It preserves `[left_arm(6), left_gripper, right_arm(6), right_gripper]`, executes the first 4 steps from each 16-step prediction before replanning, and does not binarize grippers. Gripper ratios are clipped to [0,1] then mapped to the robot's actual joint limits; `table_rearrangement` uses physical units directly. The policy network receives three RGB views resized to 224×224; measured state is used for local delta reconstruction and is not sent to the model.
 
 Memory matches training: 5 sparse historical frames, interval 10, chronological order, gated fusion, slot attention enabled, injection levels [2], query `latest_history`, temporal encoding `none`. The adapter integrates the measured-state decoding and three-view recording previously supplied by local evaluation wrappers, so no historical run directory is required.
 
@@ -125,6 +136,15 @@ Memory matches training: 5 sparse historical frames, interval 10, chronological 
 
 ## Upload and provenance
 
-Upload extracted source files to GitHub. Stage weights with `scripts/prepare_hf_upload.py` and upload them to a separate HF model repository. Fill the URL/revision/data-source fields in `submission.json`, the HF model card and [submission template](docs/SUBMISSION_TEMPLATE.md). The public submission frontend reported new requests closed on 2026-10-16; use the applicable organizer-approved request/correction process. Private GitHub access and gated HF access rules are detailed in the Chinese submission guide.
+Policy training used only official RoboSynChallenge simulation data: 100% simulated, 0% real, no additional policy-training datasets (team confirmation on 2026-10-16). The local mixture name is `robosynchallenge_all`; the exact upstream dataset release/revision was not recorded. This statement describes policy training; upstream base-model pretraining follows the RynnBrain-8B documentation.
+
+Code repository: https://github.com/YuancongLiang/RoboSynChallenge_hippovla. Submit a fixed commit URL, generated from the clean checkout:
+
+```bash
+git rev-parse HEAD
+# Form URL: https://github.com/YuancongLiang/RoboSynChallenge_hippovla/tree/<the commit printed above>
+```
+
+All ten task fields use the same pinned HF checkpoint URL from [submission.json](submission.json). The organizing committee approved an individual preliminary-submission exception for the registered Luxi Tech account through October 25, 2026 AoE: submit before October 26, 2026 12:00 UTC / 20:00 Beijing. Sign in with the already-approved account and existing emailed token; public submission closure does not revoke this individual approval. Save the evaluation ID after submitting. See the Chinese guide and submission template for form details.
 
 The source checkpoint SHA-256 is `c47a13143bc04d9a5d9dcd2ce148e7592b440905986c07953fad538417b0077b` (17,915,145,078 bytes). Metadata is copied unchanged from the same training run. Code attribution and separate model terms are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

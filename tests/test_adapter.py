@@ -1,5 +1,6 @@
 """Regression checks for deployment semantics without loading the 8B model."""
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -122,6 +123,36 @@ class AdapterTests(unittest.TestCase):
             for i, command in enumerate(commands):
                 self.assertEqual(command[command.index("--max_steps") + 1], str(300+i))
             self.assertFalse(output.exists())
+
+    def test_installed_shell_entrypoint_from_another_directory(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            temp = Path(tmp)
+            benchmark = temp / "benchmark with spaces"
+            (benchmark / "scripts").mkdir(parents=True)
+            (benchmark / "scripts/eval_policy.py").write_text(
+                'import json,os,sys\nprint(json.dumps({"args":sys.argv[1:],'
+                '"cwd":os.getcwd(),"cuda_mask":os.environ.get("CUDA_VISIBLE_DEVICES")}))\n')
+            subprocess.run([sys.executable, str(ROOT / "scripts/install_eval_adapter.py"),
+                            str(benchmark)], check=True, capture_output=True)
+            checkpoint = temp / "weights with spaces/final_model/pytorch_model.pt"
+            checkpoint.parent.mkdir(parents=True)
+            checkpoint.touch()
+            for filename in ("config.yaml", "dataset_statistics.json"):
+                (checkpoint.parents[1] / filename).touch()
+            env = dict(os.environ, ROBOSYN_PYTHON=sys.executable, CUDA_VISIBLE_DEVICES="7",
+                       ROBOSYN_POLICY_HOST="test-server", ROBOSYN_SERVER_PORT="5789")
+            result = subprocess.check_output([
+                "bash", str(benchmark / "policy/hippovla/eval.sh"),
+                "click_bell", str(checkpoint), "2", "7", "--seed", "42",
+            ], cwd=temp, env=env, text=True)
+            actual = json.loads(result)
+            args = actual["args"]
+            self.assertEqual(actual["cwd"], str(benchmark))
+            self.assertIsNone(actual["cuda_mask"])
+            for key, value in (("--policy_ckpt_path", str(checkpoint)), ("--task_name", "click_bell"),
+                               ("--gpu_id", "2"), ("--max_episodes", "7"),
+                               ("--host", "test-server"), ("--port", "5789"), ("--seed", "42")):
+                self.assertEqual(args[args.index(key) + 1], value)
 
 
 if __name__ == "__main__":

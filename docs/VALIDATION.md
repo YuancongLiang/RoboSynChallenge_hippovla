@@ -26,8 +26,22 @@ Added `replan_action_steps` independently of the model's prediction horizon and 
 
 All 11 adapter tests passed using `/root/miniconda3/envs/hippo-plus/bin/python -m unittest discover -s tests -v`, including inference at steps 0/8/16 with fresh observations, delta decoding from the latest measured state, default full-chunk behavior, reset/instruction changes, short responses and invalid intervals. The `ModelClient.__init__`, `reset`, and `step` methods match across all three edited adapters. No simulator episodes were run for this update.
 
+## Official interface and four-step replanning update — 2026-10-16
+
+Checked the official evaluator contract at RoboSynChallenge commit `64b0775eddb3ed8c4c3d1212f322e8a9d036e9d6`. The prior tests used a local older three-return evaluator and did not establish compatibility with this current four-return contract.
+
+The adapter now returns `(observation, info, truncated, inference_times_s)`. Actual prediction timings include raw observation preprocessing, memory preparation, synchronous remote inference, delta decoding and executable-action transfer; they exclude environment execution, video recording and cached actions. The supplied YAML now replans every 4 steps while preserving the 16-action prediction horizon. Private scoring, object-pose reads, success gates and camera overrides were removed; only the official success interface is used.
+
+All 16 adapter tests passed, covering four-return unpacking, inference at steps 0/4/8 with fresh observations and measured-state delta decoding, exact timing boundaries (including mocked CUDA synchronization) and cached-call exclusion, official success/timeout/termination stopping, and the installed shell entrypoint from an unrelated working directory with spaces in paths. The existing eight-step, full-chunk, action decoding, video and ten-task launcher regressions also passed. Shell syntax and `git diff --check` passed.
+
+A fresh isolated server strictly loaded the full selected checkpoint and ran the real adapter against synthetic RGB/qpos observations. Three predictions occurred at steps 0, 4 and 8, with finite `(1, 16, 14)` responses. The four-return contract aggregated three positive timing samples over 12 mocked environment steps. See `interface_smoke_result.json`. This used a mocked environment, not simulator episodes. The temporary server was terminated.
+
+The complete source base model was verified against `Alibaba-DAMO-Academy/RynnBrain-8B` revision `04f588d50bf6f31b6b9f03f4d16d98dd0d22bcfe`: four weight shards matched upstream SHA-256, and all runtime config/tokenizer/processor files matched upstream content hashes. See `base_model_verification.json`.
+
 ## Limits
 
-No new simulator episodes or complete ten-task evaluation were run during packaging. The inference check establishes checkpoint/code compatibility, not task success or real-robot readiness. Existing documented task-coverage and unit limitations remain. Installation was checked using the source server's working environment rather than building a new conda environment from scratch.
+No complete ten-task simulation evaluation was run. Synthetic inputs and mocked environment transitions establish model/adapter behavior and timing semantics, not task success. Installation was checked using the source server's working environment rather than a clean conda build. Existing task-coverage and action/state unit limitations remain.
 
-GitHub/HF URLs, immutable revisions and actual training data provenance must be filled before requesting evaluation. No repository, model, or evaluation request was uploaded by this packaging task.
+Policy-training data scope is recorded from the team's 2026-10-16 confirmation (official simulation data only); an exact dataset release/revision was not recorded. Submission must use a published immutable GitHub commit URL. This validation does not submit an evaluation request.
+
+HF model metadata was updated at revision `352a6cf7b419734fd0b13ce75a4205c2073c03ee`; the weights were not changed. Anonymous metadata confirms the original checkpoint size and SHA-256. GitHub publication and final code commit are recorded in the release information supplied with the submission.

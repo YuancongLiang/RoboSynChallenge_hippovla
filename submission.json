@@ -1,14 +1,13 @@
 {
   "artifact_name": "HIPPOVLA-RynnBrain8B-DiTB-delta16",
   "experiment_name": "robosynchallenge_hippo_plus_seed42_final",
-  "code_url": null,
-  "code_commit": null,
-  "checkpoint_repository": null,
-  "checkpoint_revision": null,
+  "code_url": "https://github.com/YuancongLiang/RoboSynChallenge_hippovla",
+  "checkpoint_repository": "ovoovo/hippovla",
+  "checkpoint_revision": "352a6cf7b419734fd0b13ce75a4205c2073c03ee",
   "checkpoint_subdirectory": ".",
   "checkpoint_file": "final_model/pytorch_model.pt",
   "base_vlm_repository": "Alibaba-DAMO-Academy/RynnBrain-8B",
-  "base_vlm_revision": null,
+  "base_vlm_revision": "04f588d50bf6f31b6b9f03f4d16d98dd0d22bcfe",
   "tasks": {
     "click_bell": {
       "checkpoint_file": "final_model/pytorch_model.pt",
@@ -51,5 +50,18 @@
       "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py water_pouring --gpu 0 --episodes 50 --output eval_runs/water_pouring"
     }
   },
-  "data_source": "TO COMPLETE: list actual datasets, real/synthetic sources, versions, and proportions; training config alone does not establish provenance."
+  "data_source": "Policy training used only official RoboSynChallenge simulation data (100% simulated, 0% real), with no additional policy-training datasets, as confirmed by the team on 2026-10-16. Local mixture: robosynchallenge_all. The exact upstream dataset release/revision was not recorded. Base-model pretraining is separate and follows the RynnBrain-8B model documentation.",
+  "code_revision_source": "Git commit containing this manifest; use git rev-parse HEAD and submit code_url/tree/<commit>.",
+  "evaluation": {
+    "eval_action_steps": 4,
+    "replan_action_steps": 4,
+    "prediction_horizon": 16,
+    "eval_returns": [
+      "observation",
+      "info",
+      "truncated",
+      "inference_times_s"
+    ],
+    "success_interface": "env.get_wrapper_attr(\"is_task_success\")()"
+  }
 }

@@ -365,15 +365,6 @@ def _as_bool(value: Any) -> bool:
     return bool(arr.any())
 
 
-def _first_scalar(value: Any, default: float = 0.0) -> float:
-    if value is None:
-        return float(default)
-    arr = _as_numpy(value).reshape(-1)
-    if arr.size == 0:
-        return float(default)
-    return float(arr[0])
-
-
 def _ensure_rgb_uint8(image: Any) -> np.ndarray:
     image = _as_numpy(image)
     if image.ndim == 4:
@@ -422,10 +413,7 @@ def _get_env_instruction(env: Any) -> str:
 
 
 def _env_is_success(env: Any) -> bool:
-    try:
-        return bool(env.get_wrapper_attr("is_task_success")())
-    except Exception:
-        return False
+    return _as_bool(env.get_wrapper_attr("is_task_success")())
 
 
 def _parse_bool(value: object, default: bool = False) -> bool:
@@ -505,16 +493,6 @@ class ModelClient:
         eval_video_obs_key: str = "cam_high",
         starvla_video_fps: int = 10,
         starvla_video_format: str = "jpg",
-        success_min_steps: int = 0,
-        task_name: str = "",
-        task_success_mode: str = "official",
-        water_pouring_success_min_steps: int = 80,
-        water_pouring_success_max_xy: float = 0.30,
-        water_pouring_success_z_min: float = -0.10,
-        water_pouring_success_z_max: float = 0.15,
-        water_pouring_success_min_tilt_deg: float = 45.0,
-        water_pouring_success_cup_upright_max_deg: float = 25.0,
-        camera_overrides: Optional[Dict[str, Any]] = None,
         action_debug_interval: int = 0,
         replan_action_steps: Optional[int] = None,
     ) -> None:
@@ -566,6 +544,7 @@ class ModelClient:
         self.raw_actions = None
         self.action_chunk_index = 0
         self.env_step = 0
+        self.last_step_did_infer = False
 
         self.action_chunk_size = int(
             server_meta.get("action_chunk_size")
@@ -621,20 +600,6 @@ class ModelClient:
         if self.video_enabled and self.video_dir is not None:
             self.video_dir.mkdir(parents=True, exist_ok=True)
             atexit.register(self.close_video_episode, False)
-        self.success_min_steps = max(0, int(success_min_steps))
-        self._success_gate_installed = False
-        self.task_name = str(task_name or "")
-        self.task_success_mode = str(task_success_mode or "official").strip().lower()
-        self.task_success_latched = False
-        self.last_success_metrics: Dict[str, float] = {}
-        self.water_pouring_success_min_steps = max(0, int(water_pouring_success_min_steps))
-        self.water_pouring_success_max_xy = float(water_pouring_success_max_xy)
-        self.water_pouring_success_z_min = float(water_pouring_success_z_min)
-        self.water_pouring_success_z_max = float(water_pouring_success_z_max)
-        self.water_pouring_success_min_tilt_deg = float(water_pouring_success_min_tilt_deg)
-        self.water_pouring_success_cup_upright_max_deg = float(water_pouring_success_cup_upright_max_deg)
-        self.camera_overrides = camera_overrides or {}
-        self._camera_overrides_applied = False
         self.action_debug_interval = max(0, int(action_debug_interval))
 
         print(
@@ -664,12 +629,6 @@ class ModelClient:
                 f"dir={self.video_dir}, obs_key={self.video_obs_key}, "
                 f"fps={self.video_fps}, format={self.video_format} ***"
             )
-        if self.success_min_steps > 0:
-            print(f"*** success gate enabled: min_env_steps={self.success_min_steps} ***")
-        if self.task_success_mode != "official":
-            print(f"*** task success mode: {self.task_success_mode} ***")
-        if self.camera_overrides:
-            print(f"*** camera overrides enabled: {list(self.camera_overrides.keys())} ***")
         if self.action_debug_interval > 0:
             print(f"*** action debug enabled: interval={self.action_debug_interval} ***")
 
@@ -756,9 +715,7 @@ class ModelClient:
         self.initial_state = None
         self.prev_action = None
         self.env_step = 0
-        self._camera_overrides_applied = False
-        self.task_success_latched = False
-        self.last_success_metrics = {}
+        self.last_step_did_infer = False
 
     @staticmethod
     def _normalize_history_mode(history_mode: Optional[str]) -> str:
@@ -853,6 +810,7 @@ class ModelClient:
         return memory
 
     def step(self, example: dict, step: int = 0) -> np.ndarray:
+        self.last_step_did_infer = False
         state = example.get("state", None)
         state = None if state is None else np.asarray(state, dtype=np.float32).reshape(-1)
         state_in_model_order = self._robosyn_to_model_action_order(state) if state is not None else None
@@ -895,6 +853,7 @@ class ModelClient:
             self.replan_action_steps, len(self.raw_actions)
         ):
             response = self.client.predict_action(vla_input)
+            self.last_step_did_infer = True
             if response.get("ok") is False:
                 raise RuntimeError(f"Policy server returned an error: {response.get('error', response)}")
             data = response["data"]
@@ -1064,211 +1023,6 @@ class ModelClient:
                     "-movflags", "+faststart", str(target),
                 ], check=True)
 
-    def evaluate_task_success(self, observation: dict, env: Any) -> tuple[bool, bool]:
-        """Return (success, authoritative) for task-specific eval metrics."""
-        if self.task_success_latched:
-            return True, self.task_success_mode != "official" or self.task_name == "water_pouring"
-
-        if self.task_success_mode == "official" and self.task_name == "water_pouring":
-            return self._official_water_pouring_success(env)
-
-        if self.task_success_mode in {"water_pouring", "water_pouring_geometry"}:
-            success = self._water_pouring_geometry_success(observation, env)
-            if success:
-                self.task_success_latched = True
-                print(
-                    "  water_pouring geometry success: "
-                    + ", ".join(
-                        f"{key}={value:.4f}" for key, value in self.last_success_metrics.items()
-                    )
-                )
-            return self.task_success_latched, True
-
-        return _env_is_success(env), False
-
-    def _official_water_pouring_success(self, env: Any) -> tuple[bool, bool]:
-        base_env = getattr(env, "unwrapped", env)
-        evaluate_task_state = getattr(base_env, "_evaluate_task_state", None)
-        if not callable(evaluate_task_state):
-            return _env_is_success(env), False
-
-        try:
-            success, fail, detail = evaluate_task_state()
-        except Exception as exc:
-            if self.action_debug_interval > 0 and (
-                self.env_step < 3 or (self.env_step + 1) % self.action_debug_interval == 0
-            ):
-                print(f"  water_pouring official success debug unavailable: {exc}")
-            return _env_is_success(env), False
-
-        detail = detail or {}
-        success_bool = _as_bool(success)
-        fail_bool = _as_bool(fail)
-        self.last_success_metrics = {
-            "step": float(self.env_step),
-            "elapsed_steps": _first_scalar(getattr(base_env, "_elapsed_steps", None), self.env_step),
-            "success": float(success_bool),
-            "fail": float(fail_bool),
-            "bottle_angle_deg": _first_scalar(detail.get("bottle_angle_deg")),
-            "bottle_in_pour_range": float(_as_bool(detail.get("bottle_in_pour_range", False))),
-            "pouring_started": float(_as_bool(detail.get("pouring_started", False))),
-            "pouring_completed": float(_as_bool(detail.get("pouring_completed", False))),
-            "bottle_fall": float(_as_bool(detail.get("bottle_fall", False))),
-            "cup_fall": float(_as_bool(detail.get("cup_fall", False))),
-            "schedule_ready": float(_as_bool(detail.get("schedule_ready", False))),
-            "stand_end": _first_scalar(detail.get("stand_end"), -1.0),
-            "stand_reached": float(_as_bool(detail.get("stand_reached", False))),
-        }
-
-        if self.action_debug_interval > 0 and (
-            success_bool or self.env_step < 3 or (self.env_step + 1) % self.action_debug_interval == 0
-        ):
-            print(
-                "  water_pouring official success debug: "
-                f"step={self.env_step}, "
-                f"elapsed={self.last_success_metrics['elapsed_steps']:.0f}, "
-                f"success={int(success_bool)}, fail={int(fail_bool)}, "
-                f"bottle_angle_deg={self.last_success_metrics['bottle_angle_deg']:.2f}, "
-                f"in_pour_range={int(self.last_success_metrics['bottle_in_pour_range'])}, "
-                f"pour_started={int(self.last_success_metrics['pouring_started'])}, "
-                f"pour_completed={int(self.last_success_metrics['pouring_completed'])}, "
-                f"bottle_fall={int(self.last_success_metrics['bottle_fall'])}, "
-                f"cup_fall={int(self.last_success_metrics['cup_fall'])}, "
-                f"schedule_ready={int(self.last_success_metrics['schedule_ready'])}, "
-                f"stand_end={self.last_success_metrics['stand_end']:.0f}, "
-                f"stand_reached={int(self.last_success_metrics['stand_reached'])}"
-            )
-
-        if success_bool:
-            self.task_success_latched = True
-        return success_bool, True
-
-    def _water_pouring_geometry_success(self, observation: dict, env: Any) -> bool:
-        bottle_pose = self._get_object_pose_matrix(observation, env, "bottle", "bottle_pose")
-        cup_pose = self._get_object_pose_matrix(observation, env, "cup", "cup_pose")
-
-        bottle_pos = bottle_pose[:3, 3]
-        cup_pos = cup_pose[:3, 3]
-        rel = bottle_pos - cup_pos
-        xy_dist = float(np.linalg.norm(rel[:2]))
-        dz = float(rel[2])
-
-        world_z = np.array([0.0, 0.0, 1.0], dtype=np.float32)
-        bottle_y_zdot = float(np.dot(bottle_pose[:3, 1], world_z))
-        cup_z_zdot = float(np.dot(cup_pose[:3, 2], world_z))
-        bottle_tilt_deg = float(
-            np.degrees(np.arccos(np.clip(bottle_y_zdot, -1.0, 1.0)))
-        )
-        cup_tilt_deg = float(
-            np.degrees(np.arccos(np.clip(cup_z_zdot, -1.0, 1.0)))
-        )
-
-        enough_steps = self.env_step >= self.water_pouring_success_min_steps
-        close_xy = xy_dist <= self.water_pouring_success_max_xy
-        close_z = self.water_pouring_success_z_min <= dz <= self.water_pouring_success_z_max
-        bottle_tilted = bottle_tilt_deg >= self.water_pouring_success_min_tilt_deg
-        cup_upright = cup_tilt_deg <= self.water_pouring_success_cup_upright_max_deg
-
-        self.last_success_metrics = {
-            "step": float(self.env_step),
-            "xy": xy_dist,
-            "dz": dz,
-            "bottle_tilt_deg": bottle_tilt_deg,
-            "cup_tilt_deg": cup_tilt_deg,
-        }
-        if self.action_debug_interval > 0 and (
-            self.env_step < 3 or (self.env_step + 1) % self.action_debug_interval == 0
-        ):
-            print(
-                "  water_pouring success debug: "
-                f"step={self.env_step}, xy={xy_dist:.4f}, dz={dz:.4f}, "
-                f"bottle_tilt_deg={bottle_tilt_deg:.2f}, "
-                f"cup_tilt_deg={cup_tilt_deg:.2f}, "
-                f"checks=steps:{int(enough_steps)} xy:{int(close_xy)} "
-                f"z:{int(close_z)} tilt:{int(bottle_tilted)} cup:{int(cup_upright)}"
-            )
-
-        return enough_steps and close_xy and close_z and bottle_tilted and cup_upright
-
-    def _get_object_pose_matrix(
-        self,
-        observation: dict,
-        env: Any,
-        object_uid: str,
-        obs_key: str,
-    ) -> np.ndarray:
-        pose = observation.get(obs_key)
-        if pose is None:
-            sim = getattr(getattr(env, "unwrapped", env), "sim", None)
-            if sim is None:
-                raise KeyError(f"Observation is missing {obs_key!r} and env.sim is unavailable.")
-            pose = sim.get_rigid_object(object_uid).get_local_pose(to_matrix=True)
-
-        pose_np = _as_numpy(pose)
-        if pose_np.ndim == 3:
-            pose_np = pose_np[0]
-        if pose_np.shape != (4, 4):
-            raise ValueError(f"Expected {obs_key} pose matrix with shape (4, 4), got {pose_np.shape}.")
-        return np.asarray(pose_np, dtype=np.float32)
-
-    def install_success_gate(self, env: Any) -> None:
-        if self.success_min_steps <= 0 or self._success_gate_installed:
-            return
-
-        original_get_wrapper_attr = env.get_wrapper_attr
-        model = self
-
-        def gated_get_wrapper_attr(name: str):
-            attr = original_get_wrapper_attr(name)
-            if name != "is_task_success":
-                return attr
-
-            def gated_is_task_success(*args, **kwargs):
-                value = attr(*args, **kwargs)
-                if model.env_step < model.success_min_steps:
-                    if isinstance(value, torch.Tensor):
-                        return torch.zeros_like(value, dtype=torch.bool)
-                    return False
-                return value
-
-            return gated_is_task_success
-
-        env.get_wrapper_attr = gated_get_wrapper_attr
-        self._success_gate_installed = True
-
-    def apply_camera_overrides(self, env: Any) -> bool:
-        if not self.camera_overrides or self._camera_overrides_applied:
-            return False
-
-        unwrapped = getattr(env, "unwrapped", env)
-        sim = getattr(unwrapped, "sim", None)
-        device = getattr(unwrapped, "device", torch.device("cpu"))
-        if sim is None:
-            raise RuntimeError("Cannot apply camera overrides because env.unwrapped.sim is missing.")
-
-        for camera_uid, override in self.camera_overrides.items():
-            if not isinstance(override, dict):
-                raise ValueError(f"Camera override for {camera_uid!r} must be a mapping.")
-            try:
-                camera = sim.get_sensor(camera_uid)
-            except Exception as exc:
-                raise KeyError(f"Camera override references unknown sensor {camera_uid!r}.") from exc
-
-            eye = override.get("eye")
-            target = override.get("target")
-            up = override.get("up", [0.0, 0.0, 1.0])
-            if eye is None or target is None:
-                raise ValueError(f"Camera override for {camera_uid!r} requires eye and target.")
-            camera.look_at(
-                torch.tensor([eye], dtype=torch.float32, device=device),
-                torch.tensor([target], dtype=torch.float32, device=device),
-                torch.tensor([up], dtype=torch.float32, device=device),
-            )
-
-        self._camera_overrides_applied = True
-        print(f"*** camera overrides applied: {list(self.camera_overrides.keys())} ***")
-        return True
-
     def log_action_debug(
         self,
         action: np.ndarray,
@@ -1392,21 +1146,6 @@ def get_model(usr_args: dict) -> ModelClient:
         raise ValueError("policy_ckpt_path must be provided in config or eval.sh arguments.")
 
     task_name = str(usr_args.get("task_name", ""))
-    success_min_steps = usr_args.get("success_min_steps", 0)
-    success_min_steps_by_task = usr_args.get("success_min_steps_by_task", {}) or {}
-    if isinstance(success_min_steps_by_task, dict) and task_name in success_min_steps_by_task:
-        success_min_steps = success_min_steps_by_task[task_name]
-
-    camera_overrides = usr_args.get("camera_overrides", {}) or {}
-    camera_overrides_by_task = usr_args.get("camera_overrides_by_task", {}) or {}
-    if isinstance(camera_overrides_by_task, dict) and task_name in camera_overrides_by_task:
-        camera_overrides = camera_overrides_by_task[task_name] or {}
-
-    task_success_mode = usr_args.get("task_success_mode", "official")
-    task_success_mode_by_task = usr_args.get("task_success_mode_by_task", {}) or {}
-    if isinstance(task_success_mode_by_task, dict) and task_name in task_success_mode_by_task:
-        task_success_mode = task_success_mode_by_task[task_name]
-
     model = ModelClient(
         policy_ckpt_path=policy_ckpt_path,
         host=usr_args.get("host", "127.0.0.1"),
@@ -1448,18 +1187,6 @@ def get_model(usr_args: dict) -> ModelClient:
         eval_video_obs_key=usr_args.get("eval_video_obs_key", "cam_high"),
         starvla_video_fps=int(usr_args.get("starvla_video_fps", 10)),
         starvla_video_format=usr_args.get("starvla_video_format", "jpg"),
-        success_min_steps=int(success_min_steps),
-        task_name=task_name,
-        task_success_mode=task_success_mode,
-        water_pouring_success_min_steps=int(usr_args.get("water_pouring_success_min_steps", 80)),
-        water_pouring_success_max_xy=float(usr_args.get("water_pouring_success_max_xy", 0.30)),
-        water_pouring_success_z_min=float(usr_args.get("water_pouring_success_z_min", -0.10)),
-        water_pouring_success_z_max=float(usr_args.get("water_pouring_success_z_max", 0.15)),
-        water_pouring_success_min_tilt_deg=float(usr_args.get("water_pouring_success_min_tilt_deg", 45.0)),
-        water_pouring_success_cup_upright_max_deg=float(
-            usr_args.get("water_pouring_success_cup_upright_max_deg", 25.0)
-        ),
-        camera_overrides=camera_overrides,
         action_debug_interval=int(usr_args.get("action_debug_interval", 0)),
     )
 
@@ -1477,28 +1204,38 @@ def reset_model(model: ModelClient) -> None:
 
 
 def eval(env: Any, model: ModelClient, observation: dict):
-    """Run one StarVLA action chunk in RoboSynChallenge and return the final observation."""
-    model.install_success_gate(env)
-    camera_changed = model.apply_camera_overrides(env)
+    """Return (observation, info, truncated, inference_times_s) for the official runner.
+
+    Time each actual prediction from raw-observation preprocessing through an
+    executable action. The synchronous WebSocket response includes server GPU
+    work. Simulation steps, video recording and cached actions are excluded.
+    """
     instruction = _get_env_instruction(env)
-    final_obs = env.unwrapped.get_obs() if camera_changed else observation
+    final_obs = observation
     info: dict[str, Any] = {}
     truncated: Any = False
     success_now = False
-    success_authoritative = False
+    inference_times_s: list[float] = []
+    simulation_device = torch.device(getattr(env.unwrapped, "device", "cpu"))
 
     if model.video_enabled and model.video_frame_idx == 0:
         model.record_video_obs(final_obs)
 
     for _ in range(model.eval_action_steps):
+        if simulation_device.type == "cuda":
+            # Exclude pending work from the previous simulation step.
+            torch.cuda.synchronize(simulation_device)
+        started_at = time.perf_counter()
         images, state = encode_obs(final_obs, env=env)
-        example = {
-            "lang": instruction,
-            "image": images,
-            "state": state,
-        }
+        example = {"lang": instruction, "image": images, "state": state}
         action = model.step(example, step=model.env_step)
         action_tensor = encode_action(action, env, getattr(model, "gripper_action_units", "physical"))
+        if model.last_step_did_infer:
+            # Action transfer can be asynchronous when the simulator uses CUDA.
+            if action_tensor.is_cuda:
+                torch.cuda.synchronize(action_tensor.device)
+            inference_times_s.append(time.perf_counter() - started_at)
+
         state_before = state
         final_obs, reward, terminated, truncated, info = env.step(action_tensor)
         try:
@@ -1509,14 +1246,12 @@ def eval(env: Any, model: ModelClient, observation: dict):
         model.log_action_debug(action, state_before, state_after)
         model.env_step += 1
 
-        success_now, success_authoritative = model.evaluate_task_success(final_obs, env)
+        # Use the same public success interface as the official baseline.
+        success_now = _env_is_success(env)
         if _as_bool(truncated) or _as_bool(terminated) or success_now:
             model.close_video_episode(success=success_now)
             break
 
     info = dict(info)
     info["starvla_env_steps"] = int(model.env_step)
-    info["starvla_success"] = bool(success_now)
-    info["starvla_success_authoritative"] = bool(success_authoritative)
-    info["starvla_success_metrics"] = dict(model.last_success_metrics)
-    return final_obs, info, truncated
+    return final_obs, info, truncated, inference_times_s

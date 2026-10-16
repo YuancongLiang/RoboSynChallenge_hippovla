@@ -1,0 +1,37 @@
+{
+  "strict_checkpoint_load": "passed",
+  "real_websocket_predictions": 3,
+  "prediction_steps": [
+    0,
+    4,
+    8
+  ],
+  "output_shapes": [
+    [
+      1,
+      16,
+      14
+    ],
+    [
+      1,
+      16,
+      14
+    ],
+    [
+      1,
+      16,
+      14
+    ]
+  ],
+  "four_value_contract": "passed",
+  "inference_times_s": [
+    0.9167035166174173,
+    0.5017426330596209,
+    0.480144863948226
+  ],
+  "environment_steps": 12,
+  "environment": "mock RGB/qpos environment; no simulator episodes",
+  "base_repository": "Alibaba-DAMO-Academy/RynnBrain-8B",
+  "base_revision": "04f588d50bf6f31b6b9f03f4d16d98dd0d22bcfe",
+  "simulation_episodes_run": 0
+}

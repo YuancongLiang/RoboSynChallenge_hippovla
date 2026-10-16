@@ -1,0 +1,11 @@
+{
+  "repository": "ovoovo/hippovla",
+  "revision": "352a6cf7b419734fd0b13ce75a4205c2073c03ee",
+  "weights_sha256": "c47a13143bc04d9a5d9dcd2ce148e7592b440905986c07953fad538417b0077b",
+  "weights_size": 17915145078,
+  "public": true,
+  "gated": false,
+  "updated_files": [
+    "README.md"
+  ]
+}

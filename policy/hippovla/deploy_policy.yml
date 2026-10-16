@@ -21,12 +21,6 @@ starvla_eval_video_log: true
 starvla_video_dir: null
 starvla_video_fps: 25
 starvla_video_format: jpg
-success_min_steps: 0
-success_min_steps_by_task: {}
-task_success_mode: official
-task_success_mode_by_task: {}
-camera_overrides: {}
-camera_overrides_by_task: {}
 action_debug_interval: 100
 host: 127.0.0.1
 port: 5711
