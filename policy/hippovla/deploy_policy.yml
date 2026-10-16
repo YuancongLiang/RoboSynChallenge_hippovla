@@ -41,8 +41,8 @@ send_state: false
 normalize_all_action_dims: true
 binary_action_indices: []
 binary_threshold: 0.5
-eval_action_steps: 8          # Environment steps per eval() call.
-replan_action_steps: 8        # Execute this many actions before requesting a fresh prediction.
+eval_action_steps: 4          # Environment steps per eval() call.
+replan_action_steps: 4        # Execute this many actions before requesting a fresh prediction.
 image_size:
 - 224
 - 224
