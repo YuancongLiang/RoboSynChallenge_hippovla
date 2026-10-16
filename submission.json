@@ -1,0 +1,55 @@
+{
+  "artifact_name": "HIPPOVLA-RynnBrain8B-DiTB-delta16",
+  "experiment_name": "robosynchallenge_hippo_plus_seed42_final",
+  "code_url": null,
+  "code_commit": null,
+  "checkpoint_repository": null,
+  "checkpoint_revision": null,
+  "checkpoint_subdirectory": ".",
+  "checkpoint_file": "final_model/pytorch_model.pt",
+  "base_vlm_repository": "Alibaba-DAMO-Academy/RynnBrain-8B",
+  "base_vlm_revision": null,
+  "tasks": {
+    "click_bell": {
+      "checkpoint_file": "final_model/pytorch_model.pt",
+      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py click_bell --gpu 0 --episodes 50 --output eval_runs/click_bell"
+    },
+    "drawer_open_place": {
+      "checkpoint_file": "final_model/pytorch_model.pt",
+      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py drawer_open_place --gpu 0 --episodes 50 --output eval_runs/drawer_open_place"
+    },
+    "handle_basket": {
+      "checkpoint_file": "final_model/pytorch_model.pt",
+      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py handle_basket --gpu 0 --episodes 50 --output eval_runs/handle_basket"
+    },
+    "item_assembly": {
+      "checkpoint_file": "final_model/pytorch_model.pt",
+      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py item_assembly --gpu 0 --episodes 50 --output eval_runs/item_assembly"
+    },
+    "items_handover": {
+      "checkpoint_file": "final_model/pytorch_model.pt",
+      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py items_handover --gpu 0 --episodes 50 --output eval_runs/items_handover"
+    },
+    "manipulate_pipette": {
+      "checkpoint_file": "final_model/pytorch_model.pt",
+      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py manipulate_pipette --gpu 0 --episodes 50 --output eval_runs/manipulate_pipette"
+    },
+    "mixer_operating": {
+      "checkpoint_file": "final_model/pytorch_model.pt",
+      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py mixer_operating --gpu 0 --episodes 50 --output eval_runs/mixer_operating"
+    },
+    "sample_loading": {
+      "checkpoint_file": "final_model/pytorch_model.pt",
+      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py sample_loading --gpu 0 --episodes 50 --output eval_runs/sample_loading"
+    },
+    "table_rearrangement": {
+      "checkpoint_file": "final_model/pytorch_model.pt",
+      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py table_rearrangement --gpu 0 --episodes 50 --output eval_runs/table_rearrangement"
+    },
+    "water_pouring": {
+      "checkpoint_file": "final_model/pytorch_model.pt",
+      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py water_pouring --gpu 0 --episodes 50 --output eval_runs/water_pouring"
+    }
+  },
+  "data_source": "TO COMPLETE: list actual datasets, real/synthetic sources, versions, and proportions; training config alone does not establish provenance."
+}

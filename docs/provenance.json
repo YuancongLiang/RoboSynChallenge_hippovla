@@ -1,0 +1,18 @@
+{
+  "prepared_date": "2026-10-16",
+  "source_deployment": "/data/milu/RoboSynChallenge_ws/robosyn_starvla_policy_server",
+  "source_checkpoint": "/mnt/nfs_shared/milu/hippo-new-model/final_model/pytorch_model.pt",
+  "source_metadata": "/mnt/nfs_shared/milu/hippo-new-model",
+  "reference_eval": "hippo_new_delta16_gripper_fixed_20261015_165128",
+  "robosyn_reference_commit": "f0c0b931a29155dd5533bfee843c97fb667fd926",
+  "embodichain_reference_commit": "9ebee30011f378f94a7cbe78b01d8c2eacba231a",
+  "reference_checkouts_may_have_local_changes": true,
+  "changes": [
+    "Portable paths and STARVLA_BASE_VLM override",
+    "Embed measured-state delta decoding from the reference wrapper directly in adapter",
+    "Embed three-camera 25fps recording in adapter",
+    "Select current checkpoint metadata and delta16 deployment settings",
+    "Replace machine-specific evaluation launchers with scripts/eval.py",
+    "Select model framework from config rather than checkpoint filename; expose RoboSynChallenge server metadata"
+  ]
+}

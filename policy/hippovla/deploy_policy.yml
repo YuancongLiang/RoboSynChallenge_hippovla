@@ -1,0 +1,72 @@
+policy_name: hippovla
+task_name: null
+setting: null
+model_name: hippovla
+train_config_name: robosynchallenge
+seed: 0
+max_episodes: 50
+max_steps: null
+num_envs: 1
+headless: true
+device: cpu
+renderer: auto
+enable_denoiser: false
+denoiser_type: nrd
+spp: 1
+gpu_id: 0
+filter_dataset_saving: true
+eval_video_log: false
+eval_video_obs_key: cam_high
+starvla_eval_video_log: true
+starvla_video_dir: null
+starvla_video_fps: 25
+starvla_video_format: jpg
+success_min_steps: 0
+success_min_steps_by_task: {}
+task_success_mode: official
+task_success_mode_by_task: {}
+camera_overrides: {}
+camera_overrides_by_task: {}
+action_debug_interval: 100
+host: 127.0.0.1
+port: 5711
+policy_ckpt_path: null
+policy_setup: robosynchallenge
+unnorm_key: new_embodiment
+action_mode: delta
+normalization_mode: min_max
+actions_are_normalized: true
+model_action_order: robosyn
+send_state: false
+normalize_all_action_dims: true
+binary_action_indices: []
+binary_threshold: 0.5
+eval_action_steps: 16
+image_size:
+- 224
+- 224
+use_ddim: true
+num_ddim_steps: 10
+memory_enabled: true
+memory_max_step: 5
+memory_interval: 10
+history_k: 0
+history_stride: 1
+history_mode: flow
+history_image_size:
+- 224
+- 224
+history_flow_compute_size:
+- 128
+- 128
+gripper_action_units_by_task:
+  click_bell: ratio
+  drawer_open_place: ratio
+  handle_basket: ratio
+  item_assembly: ratio
+  items_handover: ratio
+  manipulate_pipette: ratio
+  mixer_operating: ratio
+  sample_loading: ratio
+  table_rearrangement: physical
+  water_pouring: ratio

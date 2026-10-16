@@ -1,0 +1,12 @@
+{
+  "strict_checkpoint_load": "passed",
+  "websocket_inference": "passed",
+  "input": "synthetic zero RGB with 3 views and 5 historical frames",
+  "output_shape": [
+    1,
+    16,
+    14
+  ],
+  "all_finite": true,
+  "simulation_episodes_run": 0
+}
