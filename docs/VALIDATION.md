@@ -1,3 +1,5 @@
+> Latest complete-policy packaging validation: [PACKAGING_VALIDATION.md](PACKAGING_VALIDATION.md), 2026-10-24. The records below describe earlier repository-wide checks and do not alone establish official bundle completeness.
+
 # Packaging validation — 2026-10-16
 
 Source: `/data/milu/RoboSynChallenge_ws/robosyn_starvla_policy_server`. The original deployment and existing evaluation services were not modified.

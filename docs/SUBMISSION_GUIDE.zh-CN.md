@@ -2,13 +2,15 @@
 
 整理日期：2026-10-16。源部署目录为 `/data/milu/RoboSynChallenge_ws/robosyn_starvla_policy_server`，选用测评文档指定的 `hippo-new-model/final_model/pytorch_model.pt`。原目录和运行中的服务未修改。
 
+> 2026-10-24 打包修复：本次补交以主办方邮件要求为准，请使用后台追加的最新官方 response form，提交修复后的固定 commit 及全部十任务映射。具体见 [PACKAGING_CORRECTION.md](PACKAGING_CORRECTION.md)。以下包含原始提交历史说明。
+
 ## 本团队的提交窗口
 
 主办方已批准 Luxi Tech 的个人提交例外，有效期至 2026-10-25 AoE 结束，即必须在 **2026-10-26 12:00 UTC / 北京时间 20:00 之前**完成提交。使用原先获批的注册账号和批准邮件中的现有 access token 登录，无需重新注册。公开提交关闭不影响本次账号专属批准。不要将 access token 写入代码、仓库或表单备注。提交后保存确认信息及 evaluation ID。
 
 ## 上传 GitHub
 
-将压缩包解压，**上传解压后的项目文件**，不要只把 ZIP 当作仓库内容。项目根目录应能直接看到 `README.md`、`policy/`、`transformer/` 和 `run_policy_server.sh`。
+将压缩包解压，**上传解压后的项目文件**，不要只把 ZIP 当作仓库内容。项目根目录应能直接看到 `README.md`、`policy/hippovla/` 和根目录兼容入口。完整运行代码、自定义 Transformers、安装及启动脚本均位于 `policy/hippovla/`。
 
 ```bash
 cd /mnt/nfs_shared/milu/robosyn_hippovla_submission
@@ -28,7 +30,7 @@ GitHub 代码和 HF 权重都需提交。当前权重已上传至 `ovoovo/hippov
 
 记录上传后的不可变 revision。若限制访问，官网仅支持 gated model：保持模型仓库可见，在 Settings 开启 Access requests / Manual approval，Add access 授权个人用户 `RoboSynChallenge`，核实其出现在 accepted list。官网不支持私有 HF 仓库邀请，也不接受参赛者提供访问 token。
 
-基础模型为 `Alibaba-DAMO-Academy/RynnBrain-8B`，固定 revision `04f588d50bf6f31b6b9f03f4d16d98dd0d22bcfe`。本地四个权重分片以及全部运行配置、tokenizer、processor 文件均与该版本的上游哈希一致，记录见 `base_model_verification.json`。按根 README 下载此固定版本。
+基础模型为 `Alibaba-DAMO-Academy/RynnBrain-8B`，固定 revision `04f588d50bf6f31b6b9f03f4d16d98dd0d22bcfe`。本地四个权重分片以及全部运行配置、tokenizer、processor 文件均与该版本的上游哈希一致，记录见 `base_model_verification.json`。按 `policy/hippovla/README.md` 下载此固定版本。
 
 ## 填写表单
 

@@ -1,0 +1,1 @@
+Place the unchanged selected pytorch_model.pt here. Keep ../config.yaml and ../dataset_statistics.json unchanged. Identity and immutable URLs: ../../../docs/checkpoint_identity.json and ../../../submission.json.

@@ -1,6 +1,6 @@
 # Submission form draft
 
-Use the clean GitHub commit containing these files. This document does not submit an evaluation request.
+Use the corrected clean GitHub commit containing the complete `policy/hippovla/` runtime. Submit all ten task mappings, including unchanged ones, through the latest official response form appended by the backend. See [PACKAGING_CORRECTION.md](PACKAGING_CORRECTION.md). This document does not submit an evaluation request.
 
 **Artifact name:** HIPPOVLA-RynnBrain8B-DiTB-delta16
 
@@ -16,7 +16,7 @@ Use the clean GitHub commit containing these files. This document does not submi
 
 **Run and dependency notes:**
 
-Use the pinned GitHub commit and HF revision above. Follow README.md for two separate Python environments: policy inference (Python 3.10, torch 2.6.0+cu124 / torchvision 0.21.0+cu124 reference, flash-attn 2.8.3, bundled custom Transformers) and official RoboSynChallenge/EmbodiChain evaluation. Install `requirements-policy-server.txt` and the bundled Transformers with `install_policy_server.sh`; install `requirements-eval.txt` in the benchmark environment. ffmpeg must provide libx264. Start `bash run_policy_server.sh CHECKPOINT BASE_VLM SERVER_GPU 5711`. Install the adapter using `python scripts/install_eval_adapter.py "$ROBOSYNCHALLENGE_PATH"`.
+Use the pinned GitHub commit and HF revision above. Follow policy/hippovla/README.md for two separate Python environments: policy inference (Python 3.10, torch 2.6.0+cu124 / torchvision 0.21.0+cu124 reference, flash-attn 2.8.3, bundled custom Transformers) and official RoboSynChallenge/EmbodiChain evaluation. From `policy/hippovla/`, install `requirements-policy-server.txt` and the bundled Transformers with `install_policy_server.sh`; install `requirements-eval.txt` in the benchmark environment. ffmpeg must provide libx264. Start `bash run_policy_server.sh CHECKPOINT BASE_VLM SERVER_GPU 5711`. Install the adapter using `python scripts/install_eval_adapter.py "$ROBOSYNCHALLENGE_PATH"`.
 
 For every task below run `"$ROBOSYN_PYTHON" scripts/eval.py TASK --gpu EVAL_GPU --episodes 50 --output eval_runs/TASK`. The adapter predicts 16 actions and executes the first 4 before replanning. It returns the official four values with a timing sample for each actual prediction, excluding cached actions and environment execution. All stopping checks use the official success interface. The installed standalone entrypoint is `bash "$ROBOSYNCHALLENGE_PATH/policy/hippovla/eval.sh" TASK CHECKPOINT EVAL_GPU 50`. Task/checkpoint mapping:
 

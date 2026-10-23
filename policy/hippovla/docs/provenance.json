@@ -1,0 +1,25 @@
+{
+  "prepared_date": "2026-10-16",
+  "source_deployment": "/data/milu/RoboSynChallenge_ws/robosyn_starvla_policy_server",
+  "source_checkpoint": "/mnt/nfs_shared/milu/hippo-new-model/final_model/pytorch_model.pt",
+  "source_metadata": "/mnt/nfs_shared/milu/hippo-new-model",
+  "reference_eval": "hippo_new_delta16_gripper_fixed_20261015_165128",
+  "robosyn_reference_commit": "f0c0b931a29155dd5533bfee843c97fb667fd926",
+  "embodichain_reference_commit": "9ebee30011f378f94a7cbe78b01d8c2eacba231a",
+  "reference_checkouts_may_have_local_changes": true,
+  "changes": [
+    "Portable paths and STARVLA_BASE_VLM override",
+    "Embed measured-state delta decoding from the reference wrapper directly in adapter",
+    "Embed three-camera 25fps recording in adapter",
+    "Select current checkpoint metadata and delta16 deployment settings",
+    "Replace machine-specific evaluation launchers with scripts/eval.py",
+    "Select model framework from config rather than checkpoint filename; expose RoboSynChallenge server metadata",
+    "Return official four-value eval contract with actual prediction timings; exclude cached actions and env.step",
+    "Replan every 4 environment steps from each 16-step prediction",
+    "Remove private scoring, object-pose access, success gates and camera overrides",
+    "Add standalone policy/hippovla/eval.sh entrypoint"
+  ],
+  "official_interface_checked_commit": "64b0775eddb3ed8c4c3d1212f322e8a9d036e9d6",
+  "base_model_repository": "Alibaba-DAMO-Academy/RynnBrain-8B",
+  "base_model_revision": "04f588d50bf6f31b6b9f03f4d16d98dd0d22bcfe"
+}

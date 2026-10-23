@@ -11,43 +11,63 @@
   "tasks": {
     "click_bell": {
       "checkpoint_file": "final_model/pytorch_model.pt",
-      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py click_bell --gpu 0 --episodes 50 --output eval_runs/click_bell"
+      "run_command": "\"$ROBOSYN_PYTHON\" policy/hippovla/scripts/eval.py click_bell --gpu 0 --episodes 50 --output eval_runs/click_bell",
+      "checkpoint_url": "https://huggingface.co/ovoovo/hippovla/resolve/352a6cf7b419734fd0b13ce75a4205c2073c03ee/final_model/pytorch_model.pt",
+      "checkpoint_revision": "352a6cf7b419734fd0b13ce75a4205c2073c03ee"
     },
     "drawer_open_place": {
       "checkpoint_file": "final_model/pytorch_model.pt",
-      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py drawer_open_place --gpu 0 --episodes 50 --output eval_runs/drawer_open_place"
+      "run_command": "\"$ROBOSYN_PYTHON\" policy/hippovla/scripts/eval.py drawer_open_place --gpu 0 --episodes 50 --output eval_runs/drawer_open_place",
+      "checkpoint_url": "https://huggingface.co/ovoovo/hippovla/resolve/352a6cf7b419734fd0b13ce75a4205c2073c03ee/final_model/pytorch_model.pt",
+      "checkpoint_revision": "352a6cf7b419734fd0b13ce75a4205c2073c03ee"
     },
     "handle_basket": {
       "checkpoint_file": "final_model/pytorch_model.pt",
-      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py handle_basket --gpu 0 --episodes 50 --output eval_runs/handle_basket"
+      "run_command": "\"$ROBOSYN_PYTHON\" policy/hippovla/scripts/eval.py handle_basket --gpu 0 --episodes 50 --output eval_runs/handle_basket",
+      "checkpoint_url": "https://huggingface.co/ovoovo/hippovla/resolve/352a6cf7b419734fd0b13ce75a4205c2073c03ee/final_model/pytorch_model.pt",
+      "checkpoint_revision": "352a6cf7b419734fd0b13ce75a4205c2073c03ee"
     },
     "item_assembly": {
       "checkpoint_file": "final_model/pytorch_model.pt",
-      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py item_assembly --gpu 0 --episodes 50 --output eval_runs/item_assembly"
+      "run_command": "\"$ROBOSYN_PYTHON\" policy/hippovla/scripts/eval.py item_assembly --gpu 0 --episodes 50 --output eval_runs/item_assembly",
+      "checkpoint_url": "https://huggingface.co/ovoovo/hippovla/resolve/352a6cf7b419734fd0b13ce75a4205c2073c03ee/final_model/pytorch_model.pt",
+      "checkpoint_revision": "352a6cf7b419734fd0b13ce75a4205c2073c03ee"
     },
     "items_handover": {
       "checkpoint_file": "final_model/pytorch_model.pt",
-      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py items_handover --gpu 0 --episodes 50 --output eval_runs/items_handover"
+      "run_command": "\"$ROBOSYN_PYTHON\" policy/hippovla/scripts/eval.py items_handover --gpu 0 --episodes 50 --output eval_runs/items_handover",
+      "checkpoint_url": "https://huggingface.co/ovoovo/hippovla/resolve/352a6cf7b419734fd0b13ce75a4205c2073c03ee/final_model/pytorch_model.pt",
+      "checkpoint_revision": "352a6cf7b419734fd0b13ce75a4205c2073c03ee"
     },
     "manipulate_pipette": {
       "checkpoint_file": "final_model/pytorch_model.pt",
-      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py manipulate_pipette --gpu 0 --episodes 50 --output eval_runs/manipulate_pipette"
+      "run_command": "\"$ROBOSYN_PYTHON\" policy/hippovla/scripts/eval.py manipulate_pipette --gpu 0 --episodes 50 --output eval_runs/manipulate_pipette",
+      "checkpoint_url": "https://huggingface.co/ovoovo/hippovla/resolve/352a6cf7b419734fd0b13ce75a4205c2073c03ee/final_model/pytorch_model.pt",
+      "checkpoint_revision": "352a6cf7b419734fd0b13ce75a4205c2073c03ee"
     },
     "mixer_operating": {
       "checkpoint_file": "final_model/pytorch_model.pt",
-      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py mixer_operating --gpu 0 --episodes 50 --output eval_runs/mixer_operating"
+      "run_command": "\"$ROBOSYN_PYTHON\" policy/hippovla/scripts/eval.py mixer_operating --gpu 0 --episodes 50 --output eval_runs/mixer_operating",
+      "checkpoint_url": "https://huggingface.co/ovoovo/hippovla/resolve/352a6cf7b419734fd0b13ce75a4205c2073c03ee/final_model/pytorch_model.pt",
+      "checkpoint_revision": "352a6cf7b419734fd0b13ce75a4205c2073c03ee"
     },
     "sample_loading": {
       "checkpoint_file": "final_model/pytorch_model.pt",
-      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py sample_loading --gpu 0 --episodes 50 --output eval_runs/sample_loading"
+      "run_command": "\"$ROBOSYN_PYTHON\" policy/hippovla/scripts/eval.py sample_loading --gpu 0 --episodes 50 --output eval_runs/sample_loading",
+      "checkpoint_url": "https://huggingface.co/ovoovo/hippovla/resolve/352a6cf7b419734fd0b13ce75a4205c2073c03ee/final_model/pytorch_model.pt",
+      "checkpoint_revision": "352a6cf7b419734fd0b13ce75a4205c2073c03ee"
     },
     "table_rearrangement": {
       "checkpoint_file": "final_model/pytorch_model.pt",
-      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py table_rearrangement --gpu 0 --episodes 50 --output eval_runs/table_rearrangement"
+      "run_command": "\"$ROBOSYN_PYTHON\" policy/hippovla/scripts/eval.py table_rearrangement --gpu 0 --episodes 50 --output eval_runs/table_rearrangement",
+      "checkpoint_url": "https://huggingface.co/ovoovo/hippovla/resolve/352a6cf7b419734fd0b13ce75a4205c2073c03ee/final_model/pytorch_model.pt",
+      "checkpoint_revision": "352a6cf7b419734fd0b13ce75a4205c2073c03ee"
     },
     "water_pouring": {
       "checkpoint_file": "final_model/pytorch_model.pt",
-      "run_command": "\"$ROBOSYN_PYTHON\" scripts/eval.py water_pouring --gpu 0 --episodes 50 --output eval_runs/water_pouring"
+      "run_command": "\"$ROBOSYN_PYTHON\" policy/hippovla/scripts/eval.py water_pouring --gpu 0 --episodes 50 --output eval_runs/water_pouring",
+      "checkpoint_url": "https://huggingface.co/ovoovo/hippovla/resolve/352a6cf7b419734fd0b13ce75a4205c2073c03ee/final_model/pytorch_model.pt",
+      "checkpoint_revision": "352a6cf7b419734fd0b13ce75a4205c2073c03ee"
     }
   },
   "data_source": "Policy training used only official RoboSynChallenge simulation data (100% simulated, 0% real), with no additional policy-training datasets, as confirmed by the team on 2026-10-16. Local mixture: robosynchallenge_all. The exact upstream dataset release/revision was not recorded. Base-model pretraining is separate and follows the RynnBrain-8B model documentation.",
@@ -63,5 +83,13 @@
       "inference_times_s"
     ],
     "success_interface": "env.get_wrapper_attr(\"is_task_success\")()"
-  }
+  },
+  "policy_directory": "policy/hippovla",
+  "packaging_only_correction_of": "80326a6a80f6f0ded34d2f7847915f31cea33f2a",
+  "checkpoint_url": "https://huggingface.co/ovoovo/hippovla/resolve/352a6cf7b419734fd0b13ce75a4205c2073c03ee/final_model/pytorch_model.pt",
+  "checkpoint_metadata_urls": {
+    "config.yaml": "https://huggingface.co/ovoovo/hippovla/resolve/352a6cf7b419734fd0b13ce75a4205c2073c03ee/config.yaml",
+    "dataset_statistics.json": "https://huggingface.co/ovoovo/hippovla/resolve/352a6cf7b419734fd0b13ce75a4205c2073c03ee/dataset_statistics.json"
+  },
+  "base_vlm_url": "https://huggingface.co/Alibaba-DAMO-Academy/RynnBrain-8B/tree/04f588d50bf6f31b6b9f03f4d16d98dd0d22bcfe"
 }

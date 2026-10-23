@@ -6,7 +6,7 @@ import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SKIP_PARTS = {".git", "__pycache__", ".venv", ".cache", "eval_runs", "hf_upload", "dist"}
+SKIP_PARTS = {".git", ".codex", "__pycache__", ".venv", ".cache", "eval_runs", "hf_upload", "dist"}
 SKIP_SUFFIXES = {".pyc", ".pyo", ".pt", ".pth", ".bin", ".safetensors", ".mp4", ".log", ".zip"}
 
 

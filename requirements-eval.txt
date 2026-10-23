@@ -1,5 +1,2 @@
-# Install in the RoboSynChallenge / EmbodiChain environment, which supplies torch.
-numpy==1.26.4
-msgpack>=1.1,<2
-PyYAML>=6,<7
-opencv-python==4.10.0.84
+# Compatibility entrypoint; canonical dependencies ship with the policy.
+-r policy/hippovla/requirements-eval.txt

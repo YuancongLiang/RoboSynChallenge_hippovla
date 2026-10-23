@@ -1,0 +1,66 @@
+datasets:
+  vla_data:
+    CoT_prompt: Your task is {instruction}. To identify the key objects for your task.
+      Locate their bounding boxes in [x1,y1,x2,y2] format.
+    action_mode: delta
+    data_mix: robosynchallenge_all
+    data_root_dir: /data/RoboSynChallenge
+    dataset_py: lerobot_datasets
+    interval: 10
+    max_step: 5
+    num_workers: 1
+    per_device_batch_size: 4
+    persistent_workers: true
+    pin_memory: true
+    prefetch_factor: 2
+    video_backend: torchvision_av
+framework:
+  action_model:
+    action_dim: 14
+    action_hidden_dim: 768
+    action_model_type: DiT-B
+    future_action_window_size: 15
+    n_condition_token: 16
+    past_action_window_size: 0
+  name: RynnBrainOFT
+  qwenvl:
+    base_vlm: /0604-10T-test/models/RynnBrain-8B
+    max_memory_step: 5
+    memory: true
+    memory_fusion: gated
+    memory_injection_levels:
+    - 2
+    memory_interval: 10
+    memory_query: latest_history
+    memory_slot_attention: true
+    memory_temporal_encoding: none
+output_dir: /0604-10T-test/hybridVLA/robosynchallenge_hippo_plus_seed42
+run_id: robosynchallenge_hippo_plus_seed42
+run_root_dir: /0604-10T-test/hybridVLA
+seed: 42
+trainer:
+  eval_interval: 1000000
+  freeze_modules: ''
+  gradient_accumulation_steps: 1
+  gradient_clipping: 1.0
+  is_resume: false
+  learning_rate:
+    action_model: 5.0e-05
+    base: 1.0e-05
+    vlm_interface: 5.0e-06
+  logging_frequency: 100
+  lr_scheduler_type: cosine_with_min_lr
+  max_train_steps: 136000
+  num_warmup_steps: 5000
+  optimizer:
+    betas:
+    - 0.9
+    - 0.95
+    eps: 1.0e-08
+    weight_decay: 1.0e-08
+  repeated_diffusion_steps: 4
+  save_interval: 30000
+  scheduler_specific_kwargs:
+    min_lr: 1.0e-06
+wandb_entity: hippovla-offline
+wandb_project: RoboSynChallenge_HIPPO_Plus

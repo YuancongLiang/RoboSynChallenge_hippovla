@@ -16,4 +16,7 @@ eval_runs/
 hf_upload/
 models/RynnBrain8B/*
 !models/RynnBrain8B/README.md
+policy/hippovla/models/RynnBrain8B/*
+!policy/hippovla/models/RynnBrain8B/README.md
 dist/
+.codex

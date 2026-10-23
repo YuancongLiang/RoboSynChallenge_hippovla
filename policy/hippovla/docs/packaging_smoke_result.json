@@ -1,0 +1,46 @@
+{
+  "real_websocket_predictions": 3,
+  "prediction_steps": [
+    0,
+    4,
+    8
+  ],
+  "output_shapes": [
+    [
+      1,
+      16,
+      14
+    ],
+    [
+      1,
+      16,
+      14
+    ],
+    [
+      1,
+      16,
+      14
+    ]
+  ],
+  "all_finite": true,
+  "four_value_contract": "passed",
+  "inference_times_s": [
+    1.713298099115491,
+    0.4878233699128032,
+    0.4866739325225353
+  ],
+  "environment_steps": 12,
+  "simulation_episodes_run": 0,
+  "environment": "synthetic RGB/qpos transitions; no simulator episodes",
+  "strict_checkpoint_load": "passed",
+  "validation_date": "2026-10-24",
+  "isolated_policy_directory": "/tmp/hippovla-composed-3k03lpa3/policy/hippovla",
+  "source_repository_siblings_copied": false,
+  "initial_pythonpath": "",
+  "network": "HF_HUB_OFFLINE=1; TRANSFORMERS_OFFLINE=1",
+  "frozen_inference_files_verified": 2267,
+  "project_modules_verified_inside_policy": 155,
+  "base_repository": "Alibaba-DAMO-Academy/RynnBrain-8B",
+  "base_revision": "04f588d50bf6f31b6b9f03f4d16d98dd0d22bcfe",
+  "checkpoint_revision": "352a6cf7b419734fd0b13ce75a4205c2073c03ee"
+}

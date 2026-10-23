@@ -1,0 +1,1 @@
+Download the complete Alibaba-DAMO-Academy/RynnBrain-8B snapshot at revision `04f588d50bf6f31b6b9f03f4d16d98dd0d22bcfe` here. All runtime files in the source snapshot were verified against upstream hashes; see `docs/base_model_verification.json` and the root README. Model binaries are ignored by Git.
